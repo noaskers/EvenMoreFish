@@ -251,7 +251,7 @@ tasks {
         relocate("com.github.Anon8281.universalScheduler", "com.oheers.fish.libs.universalScheduler")
         relocate("co.aikar.commands", "com.oheers.fish.libs.acf")
         relocate("co.aikar.locales", "com.oheers.fish.libs.locales")
-        relocate("de.themoep.inventoryguiA", "com.oheers.fish.libs.inventorygui")
+        relocate("de.themoep.inventorygui", "com.oheers.fish.libs.inventorygui")
         relocate("net.kyori.adventure", "com.oheers.fish.libs.adventure")
         relocate("uk.firedev.vanishchecker", "com.oheers.fish.libs.vanishchecker")
         relocate("dev.dejvokep", "com.oheers.fish.libs.boostedyaml")
