@@ -1,9 +1,10 @@
 package com.oheers.fish.baits;
 
+import com.oheers.fish.EvenMoreFish;
 import com.oheers.fish.FishUtils;
+import com.oheers.fish.api.adapter.AbstractMessage;
 import com.oheers.fish.config.BaitFile;
 import com.oheers.fish.config.messages.ConfigMessage;
-import com.oheers.fish.config.messages.Message;
 import com.oheers.fish.fishing.items.Fish;
 import com.oheers.fish.fishing.items.FishManager;
 import com.oheers.fish.fishing.items.Rarity;
@@ -57,7 +58,7 @@ public class Bait {
         this.displayName = BaitFile.getInstance().getDisplayName(this.name);
         this.dropQuantity = BaitFile.getInstance().getDropQuantity(this.name);
 
-        this.itemFactory = new ItemFactory("baits." + name);
+        this.itemFactory = new ItemFactory(BaitFile.getInstance().getConfig(), "baits." + name);
 
         this.itemFactory.enableDefaultChecks();
         this.itemFactory.setItemDisplayNameCheck(true);
@@ -116,33 +117,33 @@ public class Bait {
             if (lineAddition.equals("{boosts}")) {
 
                 if (!rarityList.isEmpty()) {
-                    Message message;
+                    AbstractMessage message;
                     if (rarityList.size() > 1) {
-                        message = new Message(BaitFile.getInstance().getBoostRaritiesFormat());
+                        message = EvenMoreFish.getAdapter().createMessage(BaitFile.getInstance().getBoostRaritiesFormat());
                     } else {
-                        message = new Message(BaitFile.getInstance().getBoostRarityFormat());
+                        message = EvenMoreFish.getAdapter().createMessage(BaitFile.getInstance().getBoostRarityFormat());
                     }
                     message.setAmount(Integer.toString(rarityList.size()));
                     message.setBaitTheme(theme);
-                    lore.add(message.getRawMessage());
+                    lore.add(message.getLegacyMessage());
                 }
 
                 if (!fishList.isEmpty()) {
-                    Message message = new Message(BaitFile.getInstance().getBoostFishFormat());
+                    AbstractMessage message = EvenMoreFish.getAdapter().createMessage(BaitFile.getInstance().getBoostFishFormat());
                     message.setAmount(Integer.toString(fishList.size()));
                     message.setBaitTheme(theme);
-                    lore.add(message.getRawMessage());
+                    lore.add(message.getLegacyMessage());
                 }
 
             } else if (lineAddition.equals("{lore}")) {
                 BaitFile.getInstance().getLore(this.name).forEach(line -> {
-                    Message message = new Message(line);
-                    lore.add(message.getRawMessage());
+                    AbstractMessage message = EvenMoreFish.getAdapter().createMessage(line);
+                    lore.add(message.getLegacyMessage());
                 });
             } else {
-                Message message = new Message(lineAddition);
+                AbstractMessage message = EvenMoreFish.getAdapter().createMessage(lineAddition);
                 message.setBaitTheme(theme);
-                lore.add(message.getRawMessage());
+                lore.add(message.getLegacyMessage());
             }
         }
 
@@ -166,14 +167,14 @@ public class Bait {
         Set<Rarity> boostedRarities = new HashSet<>(getRarityList());
         boostedRarities.addAll(fishListRarities);
 
-        Rarity fishRarity = FishManager.getInstance().getRandomWeightedRarity(player, getBoostRate(), boostedRarities, FishManager.getInstance().getRarityMap().keySet());
+        Rarity fishRarity = FishManager.getInstance().getRandomWeightedRarity(player, getBoostRate(), boostedRarities, Set.copyOf(FishManager.getInstance().getRarityMap().values()));
         Fish fish;
 
         if (!getFishList().isEmpty()) {
             // The bait has both rarities: and fish: set but the plugin chose a rarity with no boosted fish. This ensures
             // the method isn't given an empty list.
             if (!fishListRarities.contains(fishRarity)) {
-                fish = FishManager.getInstance().getFish(fishRarity, location, player, BaitFile.getInstance().getBoostRate(), FishManager.getInstance().getFishForRarity(fishRarity), true);
+                fish = FishManager.getInstance().getFish(fishRarity, location, player, BaitFile.getInstance().getBoostRate(), fishRarity.getFishList(), true);
             } else {
                 fish = FishManager.getInstance().getFish(fishRarity, location, player, BaitFile.getInstance().getBoostRate(), getFishList(), true);
             }
@@ -214,10 +215,10 @@ public class Bait {
             return;
         }
 
-        Message message = new Message(ConfigMessage.BAIT_USED);
+        AbstractMessage message = ConfigMessage.BAIT_USED.getMessage();
         message.setBait(this.name);
         message.setBaitTheme(this.theme);
-        message.broadcast(player);
+        message.send(player);
 
     }
 

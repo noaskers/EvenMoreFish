@@ -3,12 +3,13 @@ rootProject.name = "even-more-fish"
 include(":even-more-fish-api")
 include(":even-more-fish-addons-j17")
 include(":even-more-fish-plugin")
-
+include(":even-more-fish-paper")
 
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            library("spigot-api", "org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+            library("spigot-api", "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
+            library("paper-api", "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
             library("vault-api", "com.github.MilkBowl:VaultAPI:1.7.1")
             library("placeholder-api", "me.clip:placeholderapi:2.11.6")
             library("bstats", "org.bstats:bstats-bukkit:3.0.2")
@@ -35,7 +36,7 @@ dependencyResolutionManagement {
             library("griefprevention", "com.github.TechFortress:GriefPrevention:16.17.1")
 
             library("itemsadder-api", "com.github.LoneDev6:API-ItemsAdder:3.6.1")
-            library("nbt-api", "de.tr7zw:item-nbt-api:2.13.3-SNAPSHOT")
+            library("nbt-api", "de.tr7zw:item-nbt-api:2.14.1")
             library("denizen-api", "com.denizenscript:denizen:1.3.1-SNAPSHOT")
             library("oraxen", "io.th0rgal:oraxen:1.173.0") // We must use 1.173.0 as later versions require Java 21
 
@@ -61,19 +62,13 @@ dependencyResolutionManagement {
             library("universalscheduler", "com.github.Anon8281:UniversalScheduler:0.1.6")
             library("playerpoints", "org.black_ixx:playerpoints:3.2.7")
 
-            library("vanishchecker", "uk.firedev:VanishChecker:1.0.3")
+            library("vanishchecker", "uk.firedev:VanishChecker:1.0.4")
 
             library("acf", "co.aikar:acf-paper:0.5.1-SNAPSHOT")
             library("inventorygui", "de.themoep:inventorygui:1.6.4-SNAPSHOT")
 
             plugin("shadow", "com.gradleup.shadow").version("8.3.3")
             plugin("bukkit-yml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
-
-            version("adventure", "4.18.0-SNAPSHOT")
-            library("adventure-api", "net.kyori","adventure-api").versionRef("adventure")
-            library("adventure-minimessage", "net.kyori","adventure-text-minimessage").versionRef("adventure")
-            library("adventure-legacy", "net.kyori","adventure-text-serializer-legacy").versionRef("adventure")
-            bundle("adventure", listOf("adventure-api", "adventure-minimessage", "adventure-legacy"))
 
             library("boostedyaml", "dev.dejvokep:boosted-yaml:1.3.7")
 

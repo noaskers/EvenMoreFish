@@ -2,15 +2,12 @@ package com.oheers.fish.utils;
 
 import com.oheers.fish.EvenMoreFish;
 import com.oheers.fish.FishUtils;
+import com.oheers.fish.api.adapter.AbstractMessage;
 import com.oheers.fish.api.addons.exceptions.IncorrectAssignedMaterialException;
 import com.oheers.fish.api.addons.exceptions.NoPrefixException;
-import com.oheers.fish.config.BaitFile;
-import com.oheers.fish.config.FishFile;
 import com.oheers.fish.config.MainConfig;
-import com.oheers.fish.config.messages.Message;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NbtApiException;
-import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -63,9 +60,9 @@ public class ItemFactory {
         this.product = getType(null);
     }
 
-    public ItemFactory(@NotNull String configLocation) {
+    public ItemFactory(@NotNull Section configurationFile, @NotNull String configLocation) {
         this.configLocation = configLocation + ".";
-        this.configurationFile = getConfiguration();
+        this.configurationFile = configurationFile;
         this.rawMaterial = false;
         this.product = getType(null);
     }
@@ -529,7 +526,7 @@ public class ItemFactory {
                 }
             }
 
-            product.setItemMeta((ItemMeta) nonDamaged);
+            product.setItemMeta(nonDamaged);
         }
     }
 
@@ -556,10 +553,10 @@ public class ItemFactory {
         ItemMeta meta = product.getItemMeta();
         if (meta == null) return;
 
-        Message lore = new Message(loreConfig);
+        AbstractMessage lore = EvenMoreFish.getAdapter().createMessage(loreConfig);
         lore.setVariables(replacements);
 
-        meta.setLore(lore.getRawListMessage());
+        meta.setLore(lore.getLegacyListMessage());
         product.setItemMeta(meta);
     }
 
@@ -579,9 +576,9 @@ public class ItemFactory {
                 if (displayName.isEmpty()) {
                     meta.setDisplayName("");
                 } else {
-                    Message display = new Message(displayName);
+                    AbstractMessage display = EvenMoreFish.getAdapter().createMessage(displayName);
                     display.setVariables(replacements);
-                    meta.setDisplayName(display.getRawMessage());
+                    meta.setDisplayName(display.getLegacyMessage());
                 }
             }
 
@@ -629,19 +626,6 @@ public class ItemFactory {
             if (itemDyeCheck) meta.addItemFlags(ItemFlag.HIDE_DYE);
             if (itemGlowCheck) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             this.product.setItemMeta(meta);
-        }
-    }
-
-    private YamlDocument getConfiguration() {
-        if (this.configLocation.startsWith("fish.")) {
-            return FishFile.getInstance().getConfig();
-        } else if (this.configLocation.startsWith("baits.")) {
-            return BaitFile.getInstance().getConfig();
-        } else if (this.configLocation.startsWith("nbt-rod-item")) {
-            return MainConfig.getInstance().getConfig();
-        } else {
-            EvenMoreFish.getInstance().getLogger().severe("Could not fetch file configuration for: " + this.configLocation);
-            return null;
         }
     }
 
