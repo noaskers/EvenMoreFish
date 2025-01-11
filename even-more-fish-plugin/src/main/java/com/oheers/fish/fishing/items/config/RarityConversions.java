@@ -40,6 +40,8 @@ public class RarityConversions {
         File file = raritiesConfig.getFile();
         file.renameTo(new File(EvenMoreFish.getInstance().getDataFolder(), "rarities.yml.old"));
         file.delete();
+
+        EvenMoreFish.getInstance().getLogger().severe("Your rarity configs have been automatically converted to the new format.");
     }
 
     /**

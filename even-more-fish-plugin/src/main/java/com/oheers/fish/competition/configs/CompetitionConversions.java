@@ -43,6 +43,8 @@ public class CompetitionConversions {
         File file = competitionsConfig.getFile();
         file.renameTo(new File(EvenMoreFish.getInstance().getDataFolder(), "competitions.yml.old"));
         file.delete();
+
+        EvenMoreFish.getInstance().getLogger().severe("Your competition configs have been automatically converted to the new format.");
     }
 
     /**

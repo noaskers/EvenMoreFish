@@ -52,6 +52,7 @@ import de.themoep.inventorygui.InventoryGui;
 import de.tr7zw.changeme.nbtapi.NBT;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
 import net.milkbowl.vault.permission.Permission;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bstats.charts.SingleLineChart;
@@ -76,6 +77,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EvenMoreFish extends EMFPlugin {
+
     private final Random random = new Random();
 
     private Permission permission = null;
@@ -90,6 +92,7 @@ public class EvenMoreFish extends EMFPlugin {
     private int metric_fishCaught = 0;
     private int metric_baitsUsed = 0;
     private int metric_baitsApplied = 0;
+    private boolean firstLoad = false;
 
     // this is for pre-deciding a rarity and running particles if it will be chosen
     // it's a work-in-progress solution and probably won't stick.
@@ -131,6 +134,10 @@ public class EvenMoreFish extends EMFPlugin {
 
         // This should only ever be done once.
         EMFPlugin.setInstance(this);
+
+        // If EMF folder does not exist, this is the first load.
+        firstLoad = !getDataFolder().exists();
+
         instance = this;
         scheduler = UniversalScheduler.getScheduler(this);
         platformAdapter = loadAdapter();
@@ -145,9 +152,6 @@ public class EvenMoreFish extends EMFPlugin {
         usingVault = Bukkit.getPluginManager().isPluginEnabled("Vault");
         usingGriefPrevention = Bukkit.getPluginManager().isPluginEnabled("GriefPrevention");
         usingPlayerPoints = Bukkit.getPluginManager().isPluginEnabled("PlayerPoints");
-
-        getConfig().options().copyDefaults();
-        saveDefaultConfig();
 
         new MainConfig();
         new Messages();
@@ -219,6 +223,9 @@ public class EvenMoreFish extends EMFPlugin {
         }
 
         logger.log(Level.INFO, "EvenMoreFish by Oheers : Enabled");
+
+        // Set this to false as the plugin is now loaded.
+        firstLoad = false;
     }
 
     @Override
@@ -505,16 +512,26 @@ public class EvenMoreFish extends EMFPlugin {
     }
 
     public ItemStack createCustomNBTRod() {
-        ItemFactory itemFactory = new ItemFactory(MainConfig.getInstance().getConfig(), "nbt-rod-item");
+        ItemFactory itemFactory = new ItemFactory("nbt-rod-item", MainConfig.getInstance().getConfig());
         itemFactory.enableDefaultChecks();
         itemFactory.setItemDisplayNameCheck(true);
         itemFactory.setItemLoreCheck(true);
 
         ItemStack customRod = itemFactory.createItem(null, 0);
-        NBT.modify(customRod,nbt -> {
+
+        setCustomNBTRod(customRod);
+
+        return customRod;
+    }
+
+    /**
+     * Allows external plugins to set their own items as an EMF NBT-rod.
+     * @param item The item to set as an EMF NBT-rod.
+     */
+    public void setCustomNBTRod(@NotNull ItemStack item) {
+        NBT.modify(item, nbt -> {
             nbt.getOrCreateCompound(NbtKeys.EMF_COMPOUND).setBoolean(NbtKeys.EMF_ROD_NBT, true);
         });
-        return customRod;
     }
 
     public void reload(@Nullable CommandSender sender) {
@@ -552,20 +569,9 @@ public class EvenMoreFish extends EMFPlugin {
 
     // Checks for updates, surprisingly
     private boolean checkUpdate() {
-
-        String[] spigotVersion = new UpdateChecker(this, 91310).getVersion().split("\\.");
-        String[] serverVersion = getDescription().getVersion().split("\\.");
-
-        for (int i = 0; i < serverVersion.length; i++) {
-            if (i < spigotVersion.length) {
-                if (Integer.parseInt(spigotVersion[i]) > Integer.parseInt(serverVersion[i])) {
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        }
-        return false;
+        ComparableVersion spigotVersion = new ComparableVersion(new UpdateChecker(this, 91310).getVersion());
+        ComparableVersion serverVersion = new ComparableVersion(getDescription().getVersion());
+        return spigotVersion.compareTo(serverVersion) > 0;
     }
 
     private void checkPapi() {
@@ -782,7 +788,7 @@ public class EvenMoreFish extends EMFPlugin {
         if (isCustomFishing(player)) {
             pdc.set(key, PersistentDataType.STRING, "false");
             ConfigMessage.TOGGLE_OFF.getMessage().send(player);
-        // If it is disabled, enable it
+            // If it is disabled, enable it
         } else {
             pdc.set(key, PersistentDataType.STRING, "true");
             ConfigMessage.TOGGLE_ON.getMessage().send(player);
@@ -812,6 +818,10 @@ public class EvenMoreFish extends EMFPlugin {
             platformAdapter = new SpigotAdapter();
         }
         return platformAdapter;
+    }
+
+    public boolean isFirstLoad() {
+        return firstLoad;
     }
 
 }

@@ -25,17 +25,17 @@ import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Skull;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.DayOfWeek;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
 
 public class FishUtils {
 
@@ -346,44 +346,18 @@ public class FishUtils {
 
         int rangeSquared = activeCompetitionFile.getBroadcastRange(); // 10 blocks squared
 
-        if (activeCompetitionFile.shouldBroadcastOnlyRods()) {
-            // sends it to all players holding ords
-            if (actionBar) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (rangeSquared > -1 && !isWithinRange(referencePlayer, player, rangeSquared)) {
-                        continue;
-                    }
-                    if (player.getInventory().getItemInMainHand().getType().equals(Material.FISHING_ROD) || player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD)) {
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(formatted));
-                    }
-                }
-            } else {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (rangeSquared > -1 && !isWithinRange(referencePlayer, player, rangeSquared)) {
-                        continue;
-                    }
-                    if (player.getInventory().getItemInMainHand().getType().equals(Material.FISHING_ROD) || player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD)) {
-                        player.sendMessage(formatted);
-                    }
-                }
-            }
-            // sends it to everyone
+        Collection<? extends Player> validPlayers = Bukkit.getOnlinePlayers();
+
+        if (rangeSquared > -1) {
+            validPlayers = validPlayers.stream()
+                    .filter(player -> isWithinRange(referencePlayer, player, rangeSquared))
+                    .toList();
+        }
+
+        if (actionBar) {
+            validPlayers.forEach(message::sendActionBar);
         } else {
-            if (actionBar) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (rangeSquared > -1 && !isWithinRange(referencePlayer, player, rangeSquared)) {
-                        continue;
-                    }
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(formatted));
-                }
-            } else {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (rangeSquared > -1 && !isWithinRange(referencePlayer, player, rangeSquared)) {
-                        continue;
-                    }
-                    player.sendMessage(formatted);
-                }
-            }
+            validPlayers.forEach(message::send);
         }
     }
 
@@ -485,6 +459,23 @@ public class FishUtils {
         } catch (ClassNotFoundException exception) {
             return false;
         }
+    }
+
+    // #editMeta methods. These can be safely replaced with Paper's API once we drop Spigot.
+
+    public static boolean editMeta(@NotNull ItemStack item, @NotNull Consumer<ItemMeta> consumer) {
+        return editMeta(item, ItemMeta.class, consumer);
+    }
+
+    public static <M extends ItemMeta> boolean editMeta(@NotNull ItemStack item, @NotNull Class<M> metaClass, @NotNull Consumer<M> consumer) {
+        ItemMeta meta = item.getItemMeta();
+        if (metaClass.isInstance(meta)) {
+            M checked = metaClass.cast(meta);
+            consumer.accept(checked);
+            item.setItemMeta(checked);
+            return true;
+        }
+        return false;
     }
 
 }
